@@ -40,6 +40,28 @@ describe("SensorsController", () => {
     });
   });
 
+  it("should not read sensors with invalid ID", async () => {
+    if (!SensorsController.read) {
+      assert.fail("SensorsController.read not implemented");
+    }
+    const ctx = { params: { id: "invalid" }, body: {} } as unknown as Koa.Context;
+    await SensorsController.read(ctx);
+
+    assert.equal(ctx.status, 400);
+    assert.equal((ctx.body as any).error, "Invalid sensor ID format. Please provide a valid non-negative number.");
+  });
+
+  it("should return 404 if sensor not found", async () => {
+    if (!SensorsController.read) {
+      assert.fail("SensorsController.read not implemented");
+    }
+    const ctx = { params: { id: 1 }, body: {} } as unknown as Koa.Context;
+    await SensorsController.read(ctx);
+
+    assert.equal(ctx.status, 404);
+    assert.equal((ctx.body as any).error, "Sensor with ID 1 not found.");
+  });
+
   it("should update sensors correctly", async () => {
     if (!SensorsController.update) {
       assert.fail("SensorsController.update not implemented");

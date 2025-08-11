@@ -34,7 +34,21 @@ export const SensorsController: Controller = {
       })
       .parse(ctx.params);
 
-    const sensor = await SensorsRepository.update(id, ctx.request.body as any);
+    let updateData;
+    try {
+      updateData = z
+        .object({
+          name: z.string().min(1, "Name cannot be empty"),
+        })
+        .strict()
+        .parse(ctx.request.body);
+    } catch (err) {
+      ctx.status = 400;
+      ctx.body = { error: "Invalid request body: unrecognized key or invalid data" };
+      return;
+    }
+
+    const sensor = await SensorsRepository.update(id, updateData);
 
     ctx.body = {
       ...sensor,

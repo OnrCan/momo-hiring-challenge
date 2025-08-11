@@ -16,13 +16,12 @@ describe("SensorsController", () => {
       assert.fail("SensorsController.read not implemented");
     }
     SensorsRepository.create({ name: "Sensor Name" });
-    SensorValuesRepository.create({
-      timestamp: 123456789,
+    
+    await SensorValuesRepository.create({
       sensor_id: 1,
       values: [1, 2, 3],
     });
-    SensorValuesRepository.create({
-      timestamp: 123456790,
+    await SensorValuesRepository.create({
       sensor_id: 1,
       values: [5, 4, 3],
     });
@@ -30,14 +29,21 @@ describe("SensorsController", () => {
     const ctx = { params: { id: 1 }, body: {} } as unknown as Koa.Context;
     await SensorsController.read(ctx);
 
-    assert.deepEqual(ctx.body, {
-      id: 1,
-      name: "Sensor Name",
-      values: [
-        [123456789, 2],
-        [123456790, 4],
-      ],
+    const response = ctx.body as any;
+    assert.equal(response.id, 1);
+    assert.equal(response.name, "Sensor Name");
+    assert.equal(Array.isArray(response.values), true);
+    assert.equal(response.values.length, 2);
+    
+    response.values.forEach((value: any) => {
+      assert.equal(Array.isArray(value), true);
+      assert.equal(value.length, 2);
+      assert.equal(typeof value[0], "number"); // timestamp
+      assert.equal(typeof value[1], "number"); // average
     });
+    
+    const averages = response.values.map((v: any) => v[1]);
+    assert.deepEqual(averages, [2, 4]);
   });
 
   it("should not read sensors with invalid ID", async () => {

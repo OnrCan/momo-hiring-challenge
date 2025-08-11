@@ -17,13 +17,18 @@ export const SensorsController: Controller = {
       .parse(ctx.params);
 
     const sensor = await SensorsRepository.read(id);
-    const values = await SensorValuesRepository.list(
+    const sensorValues = await SensorValuesRepository.list(
       (value) => value.sensor_id === id
     );
 
+    const transformedValues = sensorValues.map(value => {
+      const average = value.values.reduce((sum, val) => sum + val, 0) / value.values.length;
+      return [value.timestamp, average];
+    });
+
     ctx.body = {
       ...sensor,
-      values,
+      values: transformedValues,
     };
   },
 

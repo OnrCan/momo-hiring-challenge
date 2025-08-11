@@ -65,4 +65,17 @@ describe("SensorsController", () => {
 
     assert.deepEqual(ctx.body, { id: 1, name: "Updated Name" });
   });
+
+  it("should delete sensors correctly", async () => {
+    if (!SensorsController.delete) {
+      assert.fail("SensorsController.delete not implemented");
+    }
+    SensorsRepository.create({ name: "Sensor Name" });
+
+    const ctx = { params: { id: 1 }, body: {} } as unknown as Koa.Context;
+    await SensorsController.delete(ctx);
+
+    assert.equal(ctx.status, 204);
+    assert.equal(database.sensors[1], undefined);
+  });
 });
